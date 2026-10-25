@@ -5,6 +5,6 @@ rules:
       - xml
     metadata:
       summary: This rule inspects the AndroidManifest.xml for the debuggable flag.
-    message: "[MASVS-RESILIENCE-4] debuggable detected as $ARG."
+    message: "[MASVS-RESILIENCE-4] debuggable detected as true."
     patterns:
-      - pattern: 'android:debuggable="$ARG"'
+      - pattern: 'android:debuggable="true"'
