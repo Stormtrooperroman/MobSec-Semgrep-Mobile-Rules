@@ -1,0 +1,18 @@
+rules:
+  - id: android-tls-certificate-transparency
+    message: >-
+      This app does not enforce TLS Certificate Transparency that helps to
+      detect SSL certificates that have been mistakenly issued by a certificate
+      authority or maliciously acquired from an otherwise unimpeachable
+      certificate authority.
+    languages:
+      - kotlin
+    severity: LOW
+    patterns:
+      - pattern-either:
+          - pattern: |
+              import com.babylon.certificatetransparency
+          - pattern: |
+              CTInterceptorBuilder(...)
+          - pattern: |
+              CTHostnameVerifierBuilder(...)

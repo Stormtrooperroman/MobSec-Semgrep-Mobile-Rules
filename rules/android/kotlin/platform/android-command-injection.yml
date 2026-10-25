@@ -1,0 +1,87 @@
+rules:
+  - id: android-command-injection-taint
+    mode: taint
+    languages:
+      - kotlin
+    severity: ERROR
+    message: >
+      Data that can be controlled by the user or by another app flows into an OS
+      command execution call. This can lead to command injection.
+
+    pattern-sources:
+      # Intent (методы и property-синтаксис Kotlin, включая неявный `intent`)
+      - pattern: $I.getStringExtra(...)
+      - pattern: $I.getDataString()
+      - pattern: $I.getData()
+      - pattern: $I.getExtras()
+      - pattern: $I.dataString
+      - pattern: $I.data
+      - pattern: $I.extras
+      - pattern: intent.dataString
+      - pattern: intent.data
+      - pattern: intent.extras
+      # Bundle / SharedPreferences
+      - pattern: $B.getString(...)
+      # Uri
+      - pattern: $U.getQueryParameter(...)
+      - pattern: $U.getLastPathSegment()
+      - pattern: $U.lastPathSegment
+      - pattern: $U.getPath()
+      - pattern: $U.path
+      # EditText
+      - pattern: $E.getText()
+      - pattern: $E.text
+      # ContentProvider.query(): selection
+      - patterns:
+          - pattern-inside: |
+              override fun query($URI: $UT, $PROJ: $PT, $SEL: $ST, $ARGS: $AT, $ORD: $OT): $RET { ... }
+          - pattern: $SEL
+      # ContentProvider.call(): arg / extras
+      - patterns:
+          - pattern-inside: |
+              override fun call($METHOD: $MT, $ARG: $AT, $EXTRAS: $ET): $RET { ... }
+          - pattern-either:
+              - pattern: $ARG
+              - pattern: $EXTRAS
+
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: Runtime.getRuntime().exec($CMD, ...)
+              - pattern: $R.exec($CMD, ...)
+          - focus-metavariable: $CMD
+      - patterns:
+          - pattern-either:
+              - pattern: ProcessBuilder($...ARGS)
+              - pattern: $PB.command($...ARGS)
+          - focus-metavariable: $...ARGS
+
+    pattern-sanitizers:
+      - pattern: android.text.TextUtils.isDigitsOnly(...)
+      - pattern: Integer.parseInt(...)
+      - pattern: Long.parseLong(...)
+      - pattern: $X.toInt()
+      - pattern: $X.toLong()
+      - pattern: $X.toIntOrNull()
+      - pattern: $X.toLongOrNull()
+      - pattern: Regex(...).matches(...)
+      - pattern: $X.toRegex().matches(...)
+
+  - id: android-command-injection
+    languages:
+      - kotlin
+    severity: WARNING
+    message: >
+      A non-literal value (concatenation, string template, format, a variable,
+      an array with a dynamic element, or `sh -c <dynamic>`) is passed to
+      Runtime.exec. If this value is user-controlled, it results in command
+      injection.
+    patterns:
+      - pattern-either:
+          - pattern: Runtime.getRuntime().exec($CMD, ...)
+          - pattern: $R.exec($CMD, ...)
+          - pattern: $R.loadLibrary($CMD)
+          - pattern: Runtime.getRuntime().loadLibrary($CMD)
+      - metavariable-regex:
+          metavariable: $CMD
+          regex: '(?s)^(?!"[^"$]*"$)(?!(arrayOf|listOf|arrayListOf|mutableListOf)\s*\(\s*("[^"$]*"\s*,?\s*)*\)$).+'

@@ -1,0 +1,19 @@
+<network-security-config>
+  <!-- ruleid: android-cleartext-enable-NSC -->
+  <base-config cleartextTrafficPermitted="true"/>
+</network-security-config>
+
+<network-security-config>
+  <!-- ruleid: android-cleartext-enable-NSC -->
+  <domain-config cleartextTrafficPermitted="true">
+    <domain>example.com</domain>
+  </domain-config>
+</network-security-config>
+
+<network-security-config>
+  <!-- ok: android-cleartext-enable-NSC -->
+  <base-config cleartextTrafficPermitted="false"/>
+</network-security-config>
+
+<network-security-config>
+</network-security-config>

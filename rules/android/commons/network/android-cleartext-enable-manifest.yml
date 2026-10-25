@@ -1,0 +1,15 @@
+rules:
+  - id: android-cleartext-enable-manifest
+    severity: WARNING
+    languages: 
+      - xml
+    message: The application transmits information over insecure channels through the use of HttpURLConnection. It is recommended to verify if the Network Security Configuration is appropriately configured to prevent such insecure transmissions.
+    pattern-either:
+        - patterns:
+            - pattern: <uses-sdk ... android:targetSdkVersion="$VE" .../>
+            - metavariable-comparison:
+                comparison: int($VE) < 28
+                metavariable: $VE
+        - patterns:
+            - pattern: <application ... android:usesCleartextTraffic="true" ... />
+            - pattern-not: <application ... android:networkSecurityConfig=$NSC ...>...</application>

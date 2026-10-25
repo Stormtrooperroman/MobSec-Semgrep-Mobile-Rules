@@ -1,0 +1,9 @@
+rules:
+  - id: android-cleartext-enable-NSC
+    severity: WARNING
+    languages: 
+      - xml
+    message: The application transmits information over insecure channels through the use of HttpURLConnection.
+    pattern-either:
+      - pattern: <base-config ... cleartextTrafficPermitted="true" ...>...</base-config>
+      - pattern: <domain-config ... cleartextTrafficPermitted="true" ...>...</domain-config>

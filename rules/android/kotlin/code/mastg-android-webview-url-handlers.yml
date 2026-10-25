@@ -1,0 +1,96 @@
+rules:
+  - id: mastg-android-webviewclient-url-handlers
+    severity: INFO
+    languages:
+      - kotlin
+    metadata:
+      summary: This rule detects WebViewClient methods that intercept URL loading, including shouldOverrideUrlLoading and shouldInterceptRequest.
+    message: "[MASVS-CODE-4] Detected WebViewClient URL interception method."
+    pattern-either:
+      - pattern: |
+          class $CLASS(...) : WebViewClient(...) {
+            ...
+            override fun shouldOverrideUrlLoading(...): $RET { ... }
+            ...
+          }
+      - pattern: |
+          class $CLASS(...) : WebViewClient(...) {
+            ...
+            override fun shouldInterceptRequest(...): $RET { ... }
+            ...
+          }
+      - pattern: |
+          class $CLASS(...) : WebViewClient(...) {
+            ...
+            override fun shouldOverrideUrlLoading(...) = $EXPR
+            ...
+          }
+      - pattern: |
+          class $CLASS(...) : WebViewClient(...) {
+            ...
+            override fun shouldInterceptRequest(...) = $EXPR
+            ...
+          }
+      - pattern: |
+          object : WebViewClient(...) {
+            ...
+            override fun shouldOverrideUrlLoading(...): $RET { ... }
+            ...
+          }
+      - pattern: |
+          object : WebViewClient(...) {
+            ...
+            override fun shouldInterceptRequest(...): $RET { ... }
+            ...
+          }
+      - pattern: |
+          object : WebViewClient(...) {
+            ...
+            override fun shouldOverrideUrlLoading(...) = $EXPR
+            ...
+          }
+      - pattern: |
+          object : WebViewClient(...) {
+            ...
+            override fun shouldInterceptRequest(...) = $EXPR
+            ...
+          }
+      - pattern: $WVC.shouldOverrideUrlLoading(...)
+      - pattern: $WVC.shouldInterceptRequest(...)
+      - pattern: $WEBVIEW.webViewClient = ...
+
+  - id: mastg-android-webviewclient-safebrowsing-whitelist
+    severity: WARNING
+    languages:
+      - kotlin
+    metadata:
+      summary: This rule detects usage of SafeBrowsing whitelist or onSafeBrowsingHit callback which may weaken security.
+    message: "[MASVS-CODE-4] Detected SafeBrowsing customization that may weaken security."
+    pattern-either:
+      - pattern: $WEBVIEW.setSafeBrowsingWhitelist(...)
+      - pattern: WebView.setSafeBrowsingWhitelist(...)
+
+      - pattern: |
+          class $CLASS(...) : WebViewClient(...) {
+            ...
+            override fun onSafeBrowsingHit(...) { ... }
+            ...
+          }
+      - pattern: |
+          class $CLASS(...) : WebViewClient(...) {
+            ...
+            override fun onSafeBrowsingHit(...) = $EXPR
+            ...
+          }
+      - pattern: |
+          object : WebViewClient(...) {
+            ...
+            override fun onSafeBrowsingHit(...) { ... }
+            ...
+          }
+      - pattern: |
+          object : WebViewClient(...) {
+            ...
+            override fun onSafeBrowsingHit(...) = $EXPR
+            ...
+          }

@@ -1,0 +1,17 @@
+rules:
+  - id: android-jackson-deserialization
+    message: >-
+      The app uses jackson deserialization library. Deserialization of untrusted
+      input can result in arbitrary code execution. Consider using HMACs to sign
+      the data stream to make sure it is not tampered with, or consider only 
+      transmitting object fields and populating a new object.
+    languages:
+      - java
+      - kotlin
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              import com.fasterxml.jackson.databind.ObjectMapper;
+              ...
+              $Z.enableDefaultTyping();

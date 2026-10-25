@@ -1,0 +1,15 @@
+rules:
+  - id: android-pendingintent-fire-one-shot
+    severity: WARNING
+    languages:
+      - java
+      - kotlin
+    message: Pending Intents not intended to be fired multiple times should use the "FLAG_ONE_SHOT" flag to avoid replay attacks.
+    patterns:
+      - pattern: PendingIntent.$M($A, $B, $C, $D, ...)
+      - metavariable-regex:
+          metavariable: $M
+          regex: ^(getActivity|getActivities|getBroadcast|getForegroundService|getService)$
+      - metavariable-regex:
+          metavariable: $D
+          regex: (?s)^(?!.*(?:FLAG_ONE_SHOT|0[xX]4000_?0000|1_?073_?741_?824)).*$

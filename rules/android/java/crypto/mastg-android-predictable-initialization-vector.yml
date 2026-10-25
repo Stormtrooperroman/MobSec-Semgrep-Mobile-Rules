@@ -1,0 +1,59 @@
+rules:
+  - id: mastg-android-predictable-initialization-vector
+    message: >-
+      The IV for AES CBC mode must be unpredictable. A static IV makes the
+      ciphertext vulnerable to Chosen Plaintext Attack, and an IV generated with
+      an insecure PRNG (java.util.Random) can be predicted by an attacker.
+      Generate the IV with java.security.SecureRandom.
+    languages:
+      - java
+    severity: ERROR
+
+    patterns:
+      - pattern-either:
+          - pattern: |
+              byte[] $X = {...};
+              ...
+              $Y = new IvParameterSpec($X, ...);
+              ...
+              $C.getInstance("=~/AES/CBC.*/i");
+          - pattern: |
+              byte[] $X = "...".$FUNC(...);
+              ...
+              $Y = new IvParameterSpec($X, ...);
+              ...
+              $C.getInstance("=~/AES/CBC.*/i");
+
+          - pattern: |
+              Random $R = new Random(...);
+              ...
+              byte[] $X = new byte[...];
+              ...
+              $R.nextBytes($X);
+              ...
+              $Y = new IvParameterSpec($X, ...);
+              ...
+              $C.getInstance("=~/AES/CBC.*/i");
+          - pattern: |
+              byte[] $X = new byte[...];
+              ...
+              new Random(...).nextBytes($X);
+              ...
+              $Y = new IvParameterSpec($X, ...);
+              ...
+              $C.getInstance("=~/AES/CBC.*/i");
+
+          - patterns:
+              - pattern: |
+                  byte[] $X = new byte[...];
+                  ...
+                  $R.nextBytes($X);
+                  ...
+                  $Y = new IvParameterSpec($X, ...);
+                  ...
+                  $C.getInstance("=~/AES/CBC.*/i");
+              - metavariable-type:
+                  metavariable: $R
+                  type: java.util.Random
+
+      - focus-metavariable: $X

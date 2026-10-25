@@ -1,0 +1,46 @@
+rules:
+  - id: mastg-android-implicit-intent-internal-communication
+    message: "[MASVS-CODE-4] The app uses an implicit intent for internal component communication. Use explicit intents by specifying the package or component."
+    languages:
+      - kotlin
+    severity: WARNING
+    metadata:
+      summary: Detects implicit intents used for internal component communication without specifying a package or component.
+    pattern-either:
+      - patterns:
+          - pattern: $CONTEXT.startActivity($INTENT)
+          - pattern-either:
+              - pattern-inside: |
+                  val $INTENT = Intent($ACTION)
+                  ...
+              - pattern-inside: |
+                  val $INTENT = Intent()
+                  ...
+                  $INTENT.action = $ACTION
+                  ...
+              - pattern-inside: |
+                  val $INTENT = Intent()
+                  ...
+                  $INTENT.setAction($ACTION)
+                  ...
+          - pattern-not-inside: |
+              $INTENT.setPackage(...)
+              ...
+          - pattern-not-inside: |
+              $INTENT.setComponent(...)
+              ...
+          - pattern-not-inside: |
+              $INTENT.setClass(...)
+              ...
+          - pattern-not-inside: |
+              $INTENT.setClassName(...)
+              ...
+          - pattern-not-inside: |
+              $INTENT.component = $X
+              ...
+
+      - patterns:
+          - pattern-either:
+              - pattern-regex: 'Intent\(\s*\)\s*\.apply\s*\{[^}]*(?:\baction\s*=|\bsetAction\s*\()[^}]*\}'
+              - pattern-regex: 'Intent\(\s*[^,()\s][^,()]*\)\s*\.apply\s*\{[^}]*\}'
+          - pattern-not-regex: '\.apply\s*\{[^}]*(?:setPackage|setComponent|setClassName|setClass|\bcomponent\s*=|`package`\s*=)[^}]*\}'

@@ -1,0 +1,41 @@
+rules:
+  - id: mastg-android-implicit-intent-leaking-extras
+    message: "[MASVS-CODE-4] The app sends an implicit intent with extras. Any app that registers for this action can receive the data. Use explicit intents for internal communication."
+    languages:
+      - kotlin
+    severity: WARNING
+    metadata:
+      summary: Detects implicit intents that carry extras without specifying a target package or component.
+    pattern-either:
+      - patterns:
+          - pattern: $CTX.startActivity($I)
+          - pattern-either:
+              - pattern-inside: |
+                  val $I = Intent()
+                  ...
+                  $I.putExtra(...)
+                  ...
+              - pattern-inside: |
+                  val $I = Intent($ACTION)
+                  ...
+                  $I.putExtra(...)
+                  ...
+          - pattern-not-inside: |
+              $I.setPackage(...)
+              ...
+          - pattern-not-inside: |
+              $I.setComponent(...)
+              ...
+          - pattern-not-inside: |
+              $I.setClass(...)
+              ...
+          - pattern-not-inside: |
+              $I.setClassName(...)
+              ...
+          - pattern-not-inside: |
+              $I.component = $X
+              ...
+
+      - patterns:
+          - pattern-regex: 'Intent\(\s*[^,()]*\)\s*\.apply\s*\{[^}]*\bputExtra\b[^}]*\}'
+          - pattern-not-regex: 'Intent\(\s*[^,()]*\)\s*\.apply\s*\{[^}]*(setPackage|setComponent|setClassName|setClass|\bcomponent\s*=|`package`\s*=)[^}]*\}'

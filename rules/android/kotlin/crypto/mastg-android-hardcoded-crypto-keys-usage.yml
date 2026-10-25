@@ -1,0 +1,14 @@
+rules:
+  - id: mastg-android-hardcoded-crypto-keys-usage
+    severity: WARNING
+    languages:
+      - kotlin
+    metadata:
+      summary: This rule looks for hardcoded keys in use.
+    message: "[MASVS-CRYPTO-1] Hardcoded cryptographic keys found in use."
+    pattern-either:
+      - pattern: val $_ = SecretKeySpec($KEY, $ALGO)
+      - pattern: |-
+          $KEY = byteArrayOf(...)
+          ...
+          SecretKeySpec($KEY, $ALGO)

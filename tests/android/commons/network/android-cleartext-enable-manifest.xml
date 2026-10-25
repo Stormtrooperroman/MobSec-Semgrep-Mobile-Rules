@@ -1,0 +1,8 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- ruleid: android-cleartext-enable-manifest -->
+  <application android:usesCleartextTraffic="true" android:label="a"/>
+  <!-- ok: android-cleartext-enable-manifest -->
+  <application android:usesCleartextTraffic="true" android:networkSecurityConfig="@xml/nsc"/>
+  <!-- ok: android-cleartext-enable-manifest -->
+  <application android:usesCleartextTraffic="false"/>
+</manifest>

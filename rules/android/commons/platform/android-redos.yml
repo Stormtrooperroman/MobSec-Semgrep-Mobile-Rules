@@ -1,0 +1,22 @@
+rules:
+  - id: android-redos
+    severity: WARNING
+    languages:
+      - java
+      - kotlin
+    message: The regular expression $RE is potentially vulnerable to catastrophic backtracking.
+    options:
+      symbolic_propagation: true
+    patterns:
+      - pattern-either:
+          - patterns:
+              - pattern: $RE
+              - pattern-regex: \"\^.*\$\"
+          - pattern: Pattern.compile($RE, ...)
+          - pattern: Pattern.matches($RE, ...)
+          - pattern: $X.matches($RE)
+      - focus-metavariable:
+          - $RE
+      - metavariable-analysis:
+          analyzer: redos
+          metavariable: $RE

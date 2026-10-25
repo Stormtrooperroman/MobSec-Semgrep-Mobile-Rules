@@ -1,0 +1,99 @@
+rules:
+  - id: mastg-android-webview-bridges-setup
+    severity: WARNING
+    languages:
+      - kotlin
+    metadata:
+      summary: Detects a WebView with JavaScript enabled that also registers a JavaScript native bridge via addJavascriptInterface().
+    message: '[MASVS-PLATFORM-2] WebView has JavaScript enabled and a native bridge is registered via addJavascriptInterface()'
+    pattern-either:
+      - patterns:
+        - pattern: $WEBVIEW.addJavascriptInterface($BRIDGE, $_)
+        - pattern-either:
+            - pattern-inside: |
+                fun $F(...) {
+                  ...
+                  $WEBVIEW.settings.javaScriptEnabled = true
+                  ...
+                }
+            - pattern-inside: |
+                fun $F(...): $T {
+                  ...
+                  $WEBVIEW.settings.javaScriptEnabled = true
+                  ...
+                }
+            - pattern-inside: |
+                fun $F(...) {
+                  ...
+                  $WEBVIEW.settings.apply {
+                    ...
+                    javaScriptEnabled = true
+                    ...
+                  }
+                  ...
+                }
+            - pattern-inside: |
+                fun $F(...): $T {
+                  ...
+                  $WEBVIEW.settings.apply {
+                    ...
+                    javaScriptEnabled = true
+                    ...
+                  }
+                  ...
+                }
+            - pattern-inside: |
+                fun $F(...) {
+                  ...
+                  $S = $WEBVIEW.settings
+                  ...
+                  $S.javaScriptEnabled = true
+                  ...
+                }
+            - pattern-inside: |
+                fun $F(...): $T {
+                  ...
+                  $S = $WEBVIEW.settings
+                  ...
+                  $S.javaScriptEnabled = true
+                  ...
+                }
+
+      - patterns:
+        - pattern: addJavascriptInterface($BRIDGE, $_)
+        - pattern-either:
+            - pattern-inside: |
+                $WEBVIEW.apply {
+                  ...
+                  settings.javaScriptEnabled = true
+                  ...
+                }
+            - pattern-inside: |
+                $WEBVIEW.apply {
+                  ...
+                  settings.apply {
+                    ...
+                    javaScriptEnabled = true
+                    ...
+                  }
+                  ...
+                }
+
+  - id: mastg-android-webview-bridges-javascriptinterface
+    severity: WARNING
+    languages: 
+      - kotlin
+    metadata:
+      summary: Detects methods annotated with @JavascriptInterface, which are exposed to JavaScript in a WebView bridge.
+    message: '[MASVS-PLATFORM-2] Method is exposed to JavaScript via @JavascriptInterface'
+    pattern-either: 
+      - pattern: |
+          @JavascriptInterface
+          fun $NAME(...) : $TYPE {
+            ...
+          }
+      - pattern: |
+          @JavascriptInterface
+          fun $NAME(...) {
+            ...
+          }

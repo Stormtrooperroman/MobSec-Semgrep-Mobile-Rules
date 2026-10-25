@@ -1,0 +1,79 @@
+rules:
+  - id: mastg-android-predictable-initialization-vector
+    message: >-
+      The IV for AES CBC mode must be unpredictable. A static IV makes the
+      ciphertext vulnerable to Chosen Plaintext Attack, and an IV generated with
+      an insecure PRNG (java.util.Random, kotlin.random.Random) can be predicted
+      by an attacker. Generate the IV with java.security.SecureRandom.
+    languages:
+      - kotlin
+    severity: ERROR
+
+    patterns:
+      - pattern-either:
+          # --- Статический IV ---
+          - pattern: |
+              val $X = byteArrayOf(...)
+              ...
+              val $Y = IvParameterSpec($X, ...)
+              ...
+              $C.getInstance("=~/AES/CBC.*/i")
+          - pattern: |
+              val $X = "...".$FUNC(...)
+              ...
+              val $Y = IvParameterSpec($X, ...)
+              ...
+              $C.getInstance("=~/AES/CBC.*/i")
+
+          # --- Random, созданный локально ---
+          - pattern: |
+              val $R = Random(...)
+              ...
+              val $X = ByteArray(...)
+              ...
+              $R.nextBytes($X)
+              ...
+              val $Y = IvParameterSpec($X, ...)
+              ...
+              $C.getInstance("=~/AES/CBC.*/i")
+          - pattern: |
+              val $X = ByteArray(...)
+              ...
+              Random(...).nextBytes($X)
+              ...
+              val $Y = IvParameterSpec($X, ...)
+              ...
+              $C.getInstance("=~/AES/CBC.*/i")
+
+          # --- kotlin.random.Random (companion object) ---
+          - pattern: |
+              val $X = ByteArray(...)
+              ...
+              Random.nextBytes($X)
+              ...
+              val $Y = IvParameterSpec($X, ...)
+              ...
+              $C.getInstance("=~/AES/CBC.*/i")
+          - pattern: |
+              val $X = Random.nextBytes(...)
+              ...
+              val $Y = IvParameterSpec($X, ...)
+              ...
+              $C.getInstance("=~/AES/CBC.*/i")
+
+          # --- Random объявлен в другом месте (поле класса и т.п.) ---
+          - patterns:
+              - pattern: |
+                  val $X = ByteArray(...)
+                  ...
+                  $R.nextBytes($X)
+                  ...
+                  val $Y = IvParameterSpec($X, ...)
+                  ...
+                  $C.getInstance("=~/AES/CBC.*/i")
+              - metavariable-type:
+                  metavariable: $R
+                  type: java.util.Random
+
+      # Один IV = одна находка
+      - focus-metavariable: $X

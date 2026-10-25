@@ -1,0 +1,9 @@
+rules:
+  - id: android-task-hijacking-single-task
+    languages:
+      - xml
+    severity: WARNING
+    message: >-
+      Activity uses singleTask launch mode. Review taskAffinity and exported state to prevent
+      task hijacking and StrandHogg-style UI spoofing.
+    pattern: <activity ... android:launchMode="singleTask" ... />

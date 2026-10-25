@@ -1,0 +1,71 @@
+rules:
+  - id: android-command-injection-taint
+    mode: taint
+    languages: 
+      - java
+    severity: ERROR
+    message: >
+      Data that can be controlled by the user or by another app flows into an OS
+      command execution call. This can lead to command injection.
+
+    pattern-sources:
+      - pattern: (Intent $I).getStringExtra(...)
+      - pattern: (Intent $I).getDataString()
+      - pattern: (Intent $I).getData()
+      - pattern: (Intent $I).getExtras()
+      - pattern: (Bundle $B).getString(...)
+      - pattern: (Uri $U).getQueryParameter(...)
+      - pattern: (Uri $U).getLastPathSegment()
+      - pattern: (Uri $U).getPath()
+      - pattern: (EditText $E).getText()
+      - pattern: (SharedPreferences $P).getString(...)
+      - patterns:
+          - pattern-inside: |
+              $RET query(Uri $URI, String[] $PROJ, String $SEL, String[] $ARGS, String $ORD) { ... }
+          - pattern: $SEL
+      - patterns:
+          - pattern-inside: |
+              $RET call(String $METHOD, String $ARG, Bundle $EXTRAS) { ... }
+          - pattern-either:
+              - pattern: $ARG
+              - pattern: $EXTRAS
+
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: Runtime.getRuntime().exec($CMD, ...)
+              - pattern: (Runtime $R).exec($CMD, ...)
+          - focus-metavariable: $CMD
+      - patterns:
+          - pattern-either:
+              - pattern: new ProcessBuilder($...ARGS)
+              - pattern: (ProcessBuilder $PB).command($...ARGS)
+          - focus-metavariable: $...ARGS
+
+    pattern-sanitizers:
+      - pattern: android.text.TextUtils.isDigitsOnly(...)
+      - pattern: Integer.parseInt(...)
+      - pattern: Long.parseLong(...)
+      - pattern: (Pattern $P).matcher(...).matches()
+
+  - id: android-command-injection
+    languages:
+      - java
+    severity: WARNING
+    message: >
+      A non-literal value (concatenation, String.format, a variable, a list or
+      array with a dynamic element, or `sh -c <dynamic>`) is passed to
+      Runtime.exec or ProcessBuilder. If this value is user-controlled, it
+      results in command injection.
+    patterns:
+      - pattern-either:
+          - pattern: Runtime.getRuntime().exec($CMD, ...)
+          - pattern: (Runtime $R).exec($CMD, ...)
+          - pattern: (Runtime $R).loadLibrary($CMD)
+          - pattern: Runtime.getRuntime().loadLibrary($CMD)
+          - pattern: (ProcessBuilder $PB).command($CMD, ...)
+          - pattern: new ProcessBuilder($CMD, ...)
+      - metavariable-regex:
+          metavariable: $CMD
+          regex: '(?s)^(?!"[^"]*"$)(?!(new\s+String\s*\[\s*\]\s*\{|Arrays\.asList\(|List\.of\()\s*("[^"]*"\s*,?\s*)*[\}\)]$).+'
+          

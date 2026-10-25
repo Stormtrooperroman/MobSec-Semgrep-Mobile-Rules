@@ -1,0 +1,11 @@
+rules:
+  - id: mastg-android-strictmode
+    severity: WARNING
+    languages:
+      - java
+      - kotlin
+    metadata:
+      summary: This rule scans uses of StrictMode.
+    message: "[MASVS-RESILIENCE] Detected usage of StrictMode"
+    patterns:
+      - pattern: StrictMode.setVmPolicy(...)
