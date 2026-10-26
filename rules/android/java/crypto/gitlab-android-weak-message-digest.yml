@@ -37,18 +37,6 @@ rules:
     strongly recommended that a standard Digest algorithm be chosen instead as implementing
     a digest by hand is error-prone.
 
-    Example of creating a SHA-384 hash:
-    ```
-    // Create a MessageDigest using the SHA-384 algorithm
-    MessageDigest sha384Digest = MessageDigest.getInstance("SHA-384");
-    // Call update with your data
-    sha384Digest.update(input);
-    // Only call digest once all data has been fed into the update sha384digest instance
-    byte[] output = sha384Digest.digest();
-    // output base64 encoded version of the hash
-    System.out.println("hash: " + Base64.getEncoder().encodeToString(output));
-    ```
-
     For more information on secure password storage see OWASP:
     https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
   severity: "WARNING"
